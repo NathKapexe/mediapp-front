@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <!-- viewport con user-scalable=no simula comportamiento nativo de app móvil -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#0d1b2a"/>
+  <title>MediChain — App del Paciente</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ============================================================
+     SPLASH SCREEN — Se muestra brevemente al abrir la app,
+     luego JS la reemplaza con la pantalla de login.
+============================================================ -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">🔗</div>
+    <h1 class="splash-title">MediChain</h1>
+    <p class="splash-sub">Tu expediente en tu mano</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     LOGIN SCREEN
+============================================================ -->
+<div id="screen-login" class="screen hidden">
+  <div class="login-bg-deco"></div>
+  <div class="login-wrap">
+
+    <div class="login-logo-block">
+      <div class="login-icon">🔗</div>
+      <h1 class="login-title">MediChain</h1>
+      <p class="login-tagline">Paciente</p>
+    </div>
+
+    <div class="login-card">
+      <h2>Bienvenido</h2>
+      <p class="login-hint">Ingresa tus datos para acceder</p>
+
+      <div class="field-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="l-email" placeholder="tucorreo@ejemplo.com" value="maria@correo.com"/>
+      </div>
+      <div class="field-group">
+        <label>Contraseña</label>
+        <input type="password" id="l-pass" placeholder="••••••••" value="12345"/>
+      </div>
+
+      <button class="btn-full" onclick="doLogin()">Iniciar sesión</button>
+      <p class="login-demo-note">Demo: <b>maria@correo.com</b> / <b>12345</b></p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     APP SHELL — Estructura principal de la app móvil.
+     Compuesta por:
+     • Status bar (hora + íconos de sistema)
+     • Header dinámico (título de pantalla actual)
+     • Área de contenido (secciones intercambiables)
+     • Bottom nav bar (navegación principal)
+============================================================ -->
+<div id="app-shell" class="hidden">
+
+  <!-- STATUS BAR (simulada) -->
+  <div class="status-bar">
+    <span id="status-time">09:41</span>
+    <span class="status-icons">●●● 📶 🔋</span>
+  </div>
+
+  <!-- HEADER DINÁMICO -->
+  <div class="app-header" id="app-header">
+    <button class="header-back hidden" id="btn-back" onclick="goBack()">‹</button>
+    <span class="header-title" id="header-title">Inicio</span>
+    <button class="header-action" id="header-action" onclick="headerAction()">🔔</button>
+  </div>
+
+  <!-- ÁREA DE CONTENIDO PRINCIPAL -->
+  <div class="app-content" id="app-content">
+
+
+    <!-- ======================================================
+         PANTALLA: HOME / INICIO
+         Vista resumen con próxima cita, medicamentos del día
+         y accesos rápidos.
+    ====================================================== -->
+    <div id="screen-home" class="app-screen active">
+
+      <!-- Saludo personalizado -->
+      <div class="home-greeting">
+        <div>
+          <p class="greeting-sub">Buenos días,</p>
+          <h2 class="greeting-name">María López 👋</h2>
+        </div>
+        <div class="home-avatar" onclick="navigate('perfil')">ML</div>
+      </div>
+
+      <!-- Card: Próxima cita -->
+      <div class="next-appt-card" onclick="navigate('citas')">
+        <div class="nac-label">📅 Próxima cita</div>
+        <div class="nac-info">
+          <strong>Dr. Roberto Morales</strong>
+          <span>Medicina Interna · Consultorio 3</span>
+        </div>
+        <div class="nac-date">
+          <span class="nac-day">16</span>
+          <span class="nac-month">Mayo</span>
+          <span class="nac-time">09:00 h</span>
+        </div>
+        <!-- Token de acceso activo -->
+        <div class="nac-token active" onclick="navigate('token');event.stopPropagation()">
+          🔑 Token activo
+        </div>
+      </div>
+
+      <!-- Medicamentos de hoy -->
+      <div class="section-header">
+        <span>💊 Medicamentos de hoy</span>
+        <button class="link-btn" onclick="navigate('medicamentos')">Ver todos</button>
+      </div>
+      <div class="meds-today-list">
+        <div class="med-today-chip taken">
+          <span class="mtc-icon">💊</span>
+          <div class="mtc-info"><b>Losartán 50mg</b><small>08:00 h · Tomado ✓</small></div>
+        </div>
+        <div class="med-today-chip">
+          <span class="mtc-icon">💊</span>
+          <div class="mtc-info"><b>Metformina 850mg</b><small>14:00 h · Pendiente</small></div>
+        </div>
+        <div class="med-today-chip">
+          <span class="mtc-icon">💊</span>
+          <div class="mtc-info"><b>Atorvastatina 20mg</b><small>22:00 h · Pendiente</small></div>
+        </div>
+      </div>
+
+      <!-- Accesos rápidos -->
+      <div class="section-header"><span>⚡ Acceso rápido</span></div>
+      <div class="quick-grid">
+        <div class="qg-item" onclick="navigate('documentos')">
+          <span>📄</span><small>Estudios</small>
+        </div>
+        <div class="qg-item" onclick="navigate('doctores')">
+          <span>👨‍⚕️</span><small>Doctores</small>
+        </div>
+        <div class="qg-item" onclick="navigate('vacunas')">
+          <span>💉</span><small>Vacunas</small>
+        </div>
+        <div class="qg-item" onclick="navigate('token')">
+          <span>🔑</span><small>Token</small>
+        </div>
+      </div>
+
+      <!-- Notificación reciente -->
+      <div class="section-header">
+        <span>🔔 Notificaciones</span>
+        <button class="link-btn" onclick="navigate('notificaciones')">Ver todas</button>
+      </div>
+      <div class="notif-preview" onclick="navigate('notificaciones')">
+        <div class="notif-dot"></div>
+        <div class="notif-text">
+          <b>Cita mañana</b>
+          <p>Dr. Morales te espera el 16 Mayo a las 09:00 h en Consultorio 3.</p>
+        </div>
+        <span class="notif-time">hace 2h</span>
+      </div>
+
+    </div><!-- /screen-home -->
+
+
+    <!-- ======================================================
+         PANTALLA: PERFIL DEL PACIENTE
+    ====================================================== -->
+    <div id="screen-perfil" class="app-screen">
+
+      <!-- Encabezado de perfil -->
+      <div class="profile-hero">
+        <div class="profile-avatar-lg">ML</div>
+        <h3>María López García</h3>
+        <p>Paciente registrada desde Ene 2025</p>
+        <button class="btn-outline-sm" onclick="openSheet('sheet-edit-profile')">✏️ Editar perfil</button>
+      </div>
+
+      <!-- Información básica -->
+      <div class="info-card">
+        <div class="ic-title">Información personal</div>
+        <div class="ic-row"><span class="ic-lbl">Fecha de nac.</span><span>14 / Mar / 1962</span></div>
+        <div class="ic-row"><span class="ic-lbl">Edad</span><span>62 años</span></div>
+        <div class="ic-row"><span class="ic-lbl">Sexo</span><span>Femenino</span></div>
+        <div class="ic-row"><span class="ic-lbl">Tipo de sangre</span><span>A+</span></div>
+        <div class="ic-row"><span class="ic-lbl">Institución</span><span>IMSS</span></div>
+        <div class="ic-row"><span class="ic-lbl">NSS / Folio</span><span>4528-71-0033</span></div>
+      </div>
+
+      <!-- Padecimientos / Tratamientos -->
+      <div class="info-card">
+        <div class="ic-title">Padecimientos y tratamientos</div>
+        <div class="condition-chip">🫀 Hipertensión arterial</div>
+        <div class="condition-chip">🩸 Diabetes mellitus tipo 2</div>
+        <div class="condition-chip">⚖️ Dislipidemia</div>
+      </div>
+
+      <!-- Contacto -->
+      <div class="info-card">
+        <div class="ic-title">Contacto</div>
+        <div class="ic-row"><span class="ic-lbl">Teléfono</span><span>55 4412-3322</span></div>
+        <div class="ic-row"><span class="ic-lbl">Correo</span><span>mlopez@correo.com</span></div>
+      </div>
+
+      <!-- Contactos de emergencia (colapsable) -->
+      <div class="collapsible-card" id="cc-emergency">
+        <div class="cc-header" onclick="toggleCollapse('cc-emergency')">
+          <span>🚨 Contactos de emergencia</span>
+          <span class="cc-arrow">▼</span>
+        </div>
+        <div class="cc-body">
+          <div class="emergency-contact">
+            <div class="ec-avatar">JP</div>
+            <div class="ec-info">
+              <b>Juan López Pérez</b>
+              <small>Hijo · 55 9900-1122</small>
+            </div>
+            <a href="tel:5599001122" class="ec-call">📞</a>
+          </div>
+          <div class="emergency-contact">
+            <div class="ec-avatar">SR</div>
+            <div class="ec-info">
+              <b>Sofía Ramírez</b>
+              <small>Hija · 55 6677-8899</small>
+            </div>
+            <a href="tel:5566778899" class="ec-call">📞</a>
+          </div>
+          <button class="btn-outline-sm mt-1" onclick="openSheet('sheet-add-emergency')">
+            + Agregar contacto
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /screen-perfil -->
+
+
+    <!-- ======================================================
+         PANTALLA: DOCUMENTOS (Estudios, análisis, recetas)
+    ====================================================== -->
+    <div id="screen-documentos" class="app-screen">
+
+      <!-- Barra de filtro y subida -->
+      <div class="doc-toolbar">
+        <div class="doc-filter-tabs">
+          <button class="dft active" onclick="filterDocs('all',this)">Todos</button>
+          <button class="dft" onclick="filterDocs('lab',this)">Lab</button>
+          <button class="dft" onclick="filterDocs('imagen',this)">Imagen</button>
+          <button class="dft" onclick="filterDocs('receta',this)">Recetas</button>
+        </div>
+        <button class="btn-upload" onclick="openSheet('sheet-upload')">+ Subir</button>
+      </div>
+
+      <!-- NOTA: Los documentos tienen data-type para el filtro JS -->
+      <div id="docs-list">
+
+        <div class="doc-item" data-type="lab">
+          <div class="doc-icon lab">🩸</div>
+          <div class="doc-info">
+            <b>Biometría hemática completa</b>
+            <small>08 Mayo 2026 · PDF · 1.2 MB</small>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-btn" onclick="openSheet('sheet-doc-view')">👁</button>
+            <button class="doc-btn" onclick="openSheet('sheet-share-doc')">🔗</button>
+          </div>
+        </div>
+
+        <div class="doc-item" data-type="lab">
+          <div class="doc-icon lab">🧬</div>
+          <div class="doc-info">
+            <b>HbA1c + Glucosa en ayuno</b>
+            <small>08 Mayo 2026 · PDF · 890 KB</small>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-btn" onclick="openSheet('sheet-doc-view')">👁</button>
+            <button class="doc-btn" onclick="openSheet('sheet-share-doc')">🔗</button>
+          </div>
+        </div>
+
+        <div class="doc-item" data-type="imagen">
+          <div class="doc-icon imagen">🫘</div>
+          <div class="doc-info">
+            <b>Ultrasonido renal bilateral</b>
+            <small>10 Ene 2026 · JPG · 3.4 MB</small>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-btn" onclick="openSheet('sheet-doc-view')">👁</button>
+            <button class="doc-btn" onclick="openSheet('sheet-share-doc')">🔗</button>
+          </div>
+        </div>
+
+        <div class="doc-item" data-type="receta">
+          <div class="doc-icon receta">📋</div>
+          <div class="doc-info">
+            <b>Receta médica — Losartán</b>
+            <small>15 Mar 2026 · PDF · 450 KB</small>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-btn" onclick="openSheet('sheet-doc-view')">👁</button>
+            <button class="doc-btn" onclick="openSheet('sheet-share-doc')">🔗</button>
+          </div>
+        </div>
+
+        <div class="doc-item" data-type="lab">
+          <div class="doc-icon lab">❤️</div>
+          <div class="doc-info">
+            <b>Electrocardiograma</b>
+            <small>15 Mar 2026 · PDF · 2.1 MB</small>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-btn" onclick="openSheet('sheet-doc-view')">👁</button>
+            <button class="doc-btn" onclick="openSheet('sheet-share-doc')">🔗</button>
+          </div>
+        </div>
+
+      </div><!-- /docs-list -->
+    </div><!-- /screen-documentos -->
+
+
+    <!-- ======================================================
+         PANTALLA: DOCTORES
+    ====================================================== -->
+    <div id="screen-doctores" class="app-screen">
+
+      <div class="doctor-card primary">
+        <div class="dc-badge">Médico General</div>
+        <div class="dc-avatar">RM</div>
+        <div class="dc-info">
+          <h4>Dr. Roberto Morales Jiménez</h4>
+          <p>Medicina Interna · CMN Siglo XXI</p>
+          <small>Consultorio 3 · Torre Médica Norte</small>
+        </div>
+        <div class="dc-actions">
+          <a href="tel:5588000033" class="dc-btn">📞 Llamar</a>
+          <button class="dc-btn outline" onclick="openSheet('sheet-new-appt')">📅 Cita</button>
+        </div>
+      </div>
+
+      <div class="section-header"><span>Especialistas</span></div>
+
+      <div class="doctor-card">
+        <div class="dc-badge spec">Especialista</div>
+        <div class="dc-avatar" style="background:linear-gradient(135deg,#6c8ebf,#3b5998)">AC</div>
+        <div class="dc-info">
+          <h4>Dra. Adriana Cruz Vega</h4>
+          <p>Cardiología · IMSS UMF 28</p>
+          <small>Consultorio 12 · Edificio B</small>
+        </div>
+        <div class="dc-actions">
+          <a href="tel:5511223344" class="dc-btn">📞 Llamar</a>
+          <button class="dc-btn outline" onclick="openSheet('sheet-new-appt')">📅 Cita</button>
+        </div>
+      </div>
+
+      <div class="doctor-card">
+        <div class="dc-badge spec">Especialista</div>
+        <div class="dc-avatar" style="background:linear-gradient(135deg,#e08a5e,#c06030)">MH</div>
+        <div class="dc-info">
+          <h4>Dr. Miguel Herrera Sánchez</h4>
+          <p>Endocrinología · Centro Médico ABC</p>
+          <small>Consultorio 7 · Piso 3</small>
+        </div>
+        <div class="dc-actions">
+          <a href="tel:5544556677" class="dc-btn">📞 Llamar</a>
+          <button class="dc-btn outline" onclick="openSheet('sheet-new-appt')">📅 Cita</button>
+        </div>
+      </div>
+
+      <button class="btn-full mt-2" onclick="openSheet('sheet-add-doctor')">+ Agregar doctor</button>
+
+    </div><!-- /screen-doctores -->
+
+
+    <!-- ======================================================
+         PANTALLA: CITAS
+         Sub-tabs: Calendario | Lista | Historial
+    ====================================================== -->
+    <div id="screen-citas" class="app-screen">
+
+      <!-- Sub-tabs de citas -->
+      <div class="sub-tabs">
+        <button class="st active" onclick="showSubTab('citas','calendario',this)">📅 Calendario</button>
+        <button class="st" onclick="showSubTab('citas','lista',this)">📋 Lista</button>
+        <button class="st" onclick="showSubTab('citas','historial',this)">🕘 Historial</button>
+      </div>
+
+      <!-- Sub-tab: Calendario simulado -->
+      <div id="citas-calendario" class="sub-screen active">
+        <div class="mini-calendar">
+          <div class="mc-header">
+            <button class="mc-nav">‹</button>
+            <span>Mayo 2026</span>
+            <button class="mc-nav">›</button>
+          </div>
+          <div class="mc-days-header">
+            <span>D</span><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span>
+          </div>
+          <div class="mc-grid" id="calendar-grid">
+            <!-- Llenado por JS -->
+          </div>
+        </div>
+
+        <!-- Citas del día seleccionado -->
+        <div class="section-header"><span id="selected-day-label">Citas del 16 de Mayo</span></div>
+        <div id="day-appointments">
+          <div class="appt-item upcoming">
+            <div class="ai-time">09:00</div>
+            <div class="ai-info">
+              <b>Dr. Roberto Morales</b>
+              <p>Revisión general · Consultorio 3</p>
+            </div>
+            <span class="ai-status ok">Confirmada</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-tab: Lista de citas -->
+      <div id="citas-lista" class="sub-screen">
+        <div class="list-group-label">Próximas</div>
+        <div class="appt-item upcoming">
+          <div class="ai-time">16 Mayo<br>09:00</div>
+          <div class="ai-info"><b>Dr. Roberto Morales</b><p>Revisión general · Consultorio 3</p></div>
+          <span class="ai-status ok">Confirmada</span>
+        </div>
+        <div class="appt-item upcoming">
+          <div class="ai-time">02 Jun<br>11:30</div>
+          <div class="ai-info"><b>Dr. Roberto Morales</b><p>Resultados de laboratorio</p></div>
+          <span class="ai-status warn">Pendiente</span>
+        </div>
+        <div class="appt-item upcoming">
+          <div class="ai-time">15 Jun<br>10:00</div>
+          <div class="ai-info"><b>Dra. Adriana Cruz</b><p>Control cardiológico</p></div>
+          <span class="ai-status warn">Pendiente</span>
+        </div>
+
+        <div class="list-group-label mt-2">Estudios programados</div>
+        <div class="appt-item study">
+          <div class="ai-time">30 May<br>07:30</div>
+          <div class="ai-info"><b>Laboratorio clínico IMSS</b><p>BHC + QS + HbA1c</p></div>
+          <span class="ai-status info">Programado</span>
+        </div>
+
+        <button class="btn-full mt-2" onclick="openSheet('sheet-new-appt')">+ Agendar cita</button>
+      </div>
+
+      <!-- Sub-tab: Historial de citas -->
+      <div id="citas-historial" class="sub-screen">
+        <div class="list-group-label">Citas anteriores</div>
+        <div class="appt-item past">
+          <div class="ai-time">08 May<br>09:30</div>
+          <div class="ai-info"><b>Dr. Roberto Morales</b><p>Control periódico</p></div>
+          <span class="ai-status neutral">Completada</span>
+        </div>
+        <div class="appt-item past">
+          <div class="ai-time">15 Mar<br>10:00</div>
+          <div class="ai-info"><b>Dr. Roberto Morales</b><p>Seguimiento HTA + DM2</p></div>
+          <span class="ai-status neutral">Completada</span>
+        </div>
+        <div class="appt-item past">
+          <div class="ai-time">10 Ene<br>11:00</div>
+          <div class="ai-info"><b>Dr. Miguel Herrera</b><p>Consulta endocrinología</p></div>
+          <span class="ai-status neutral">Completada</span>
+        </div>
+        <div class="appt-item past" style="border-left-color:var(--danger)">
+          <div class="ai-time">10 Feb<br>12:00</div>
+          <div class="ai-info"><b>Dra. Adriana Cruz</b><p>Cardiología</p></div>
+          <span class="ai-status danger">Cancelada</span>
+        </div>
+      </div>
+
+    </div><!-- /screen-citas -->
+
+
+    <!-- ======================================================
+         PANTALLA: MEDICAMENTOS
+         Lista de medicamentos con horarios.
+    ====================================================== -->
+    <div id="screen-medicamentos" class="app-screen">
+
+      <div class="section-header">
+        <span>💊 Medicamentos activos</span>
+        <button class="link-btn" onclick="openSheet('sheet-add-med')">+ Agregar</button>
+      </div>
+
+      <!-- Cada med-card muestra nombre, dosis, horarios del día -->
+      <div class="med-card">
+        <div class="med-icon" style="background:#e6f0ff">💊</div>
+        <div class="med-main">
+          <div class="med-name">Losartán <span class="med-dose">50 mg</span></div>
+          <div class="med-doctor">Dr. Morales · Sep 2025</div>
+          <div class="med-schedule">
+            <!-- Cada pastilla = una toma del día -->
+            <div class="ms-pill taken">08:00 ✓</div>
+          </div>
+        </div>
+        <div class="med-status active-dot"></div>
+      </div>
+
+      <div class="med-card">
+        <div class="med-icon" style="background:#fff0e6">💊</div>
+        <div class="med-main">
+          <div class="med-name">Metformina <span class="med-dose">850 mg</span></div>
+          <div class="med-doctor">Dr. Morales · Ene 2026</div>
+          <div class="med-schedule">
+            <div class="ms-pill taken">08:00 ✓</div>
+            <div class="ms-pill">14:00</div>
+          </div>
+        </div>
+        <div class="med-status active-dot"></div>
+      </div>
+
+      <div class="med-card">
+        <div class="med-icon" style="background:#f0e6ff">💊</div>
+        <div class="med-main">
+          <div class="med-name">Atorvastatina <span class="med-dose">20 mg</span></div>
+          <div class="med-doctor">Dr. Morales · Mar 2026</div>
+          <div class="med-schedule">
+            <div class="ms-pill">22:00</div>
+          </div>
+        </div>
+        <div class="med-status active-dot"></div>
+      </div>
+
+      <div class="section-header mt-2"><span>⛔ Medicamentos suspendidos</span></div>
+
+      <div class="med-card inactive">
+        <div class="med-icon" style="background:#f5f5f5">💊</div>
+        <div class="med-main">
+          <div class="med-name">Aspirina <span class="med-dose">100 mg</span></div>
+          <div class="med-doctor">Dr. Morales · Suspendido Oct 2025</div>
+        </div>
+      </div>
+
+    </div><!-- /screen-medicamentos -->
+
+
+    <!-- ======================================================
+         PANTALLA: PRÓXIMOS ANÁLISIS / ESTUDIOS
+         Citas / fechas para estudios de laboratorio programados.
+    ====================================================== -->
+    <div id="screen-analisis" class="app-screen">
+
+      <div class="section-header">
+        <span>🧪 Próximos estudios</span>
+        <button class="link-btn" onclick="openSheet('sheet-add-study')">+ Agregar</button>
+      </div>
+
+      <div class="study-item urgent">
+        <div class="si-date-badge">
+          <span class="si-day">30</span>
+          <span class="si-month">Mayo</span>
+        </div>
+        <div class="si-info">
+          <b>BHC + Química sanguínea + HbA1c</b>
+          <p>07:30 h · Laboratorio Clínico IMSS · En ayuno</p>
+          <div class="si-tags">
+            <span class="si-tag">Urgente</span>
+            <span class="si-tag">Ayuno 8h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="study-item">
+        <div class="si-date-badge">
+          <span class="si-day">02</span>
+          <span class="si-month">Jun</span>
+        </div>
+        <div class="si-info">
+          <b>Electrocardiograma</b>
+          <p>10:00 h · Cardio IMSS · Sin ayuno</p>
+          <div class="si-tags"><span class="si-tag">Cardiología</span></div>
+        </div>
+      </div>
+
+      <div class="study-item">
+        <div class="si-date-badge">
+          <span class="si-day">15</span>
+          <span class="si-month">Jul</span>
+        </div>
+        <div class="si-info">
+          <b>Perfil tiroideo completo</b>
+          <p>08:00 h · Lab. Clínico IMSS · Ayuno</p>
+          <div class="si-tags">
+            <span class="si-tag">Ayuno 12h</span>
+            <span class="si-tag">Endocrinología</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header mt-2"><span>✅ Estudios recientes</span></div>
+
+      <div class="study-item done">
+        <div class="si-date-badge done">
+          <span class="si-day">08</span>
+          <span class="si-month">May</span>
+        </div>
+        <div class="si-info">
+          <b>BHC completa</b>
+          <p>Resultados disponibles · PDF subido</p>
+        </div>
+        <button class="doc-btn" onclick="navigate('documentos')">📄</button>
+      </div>
+
+    </div><!-- /screen-analisis -->
+
+
+    <!-- ======================================================
+         PANTALLA: VACUNAS
+         Registro de vacunas aplicadas y pendientes.
+    ====================================================== -->
+    <div id="screen-vacunas" class="app-screen">
+
+      <div class="section-header">
+        <span>✅ Vacunas aplicadas</span>
+        <button class="link-btn" onclick="openSheet('sheet-add-vaccine')">+ Agregar</button>
+      </div>
+
+      <div class="vaccine-item applied">
+        <div class="vac-icon">💉</div>
+        <div class="vac-info">
+          <b>Influenza estacional</b>
+          <p>Aplicada: Oct 2025 · IMSS UMF 28</p>
+        </div>
+        <span class="vac-badge ok">✓ Al día</span>
+      </div>
+
+      <div class="vaccine-item applied">
+        <div class="vac-icon">💉</div>
+        <div class="vac-info">
+          <b>COVID-19 (dosis de refuerzo)</b>
+          <p>Aplicada: Abr 2025 · IMSS UMF 28</p>
+        </div>
+        <span class="vac-badge ok">✓ Al día</span>
+      </div>
+
+      <div class="vaccine-item applied">
+        <div class="vac-icon">💉</div>
+        <div class="vac-info">
+          <b>Tétanos / Difteria (Td)</b>
+          <p>Aplicada: Mar 2021 · IMSS</p>
+        </div>
+        <span class="vac-badge warn">Refuerzo 2026</span>
+      </div>
+
+      <div class="section-header mt-2"><span>⏳ Vacunas pendientes / refuerzos</span></div>
+
+      <div class="vaccine-item pending">
+        <div class="vac-icon" style="opacity:.5">💉</div>
+        <div class="vac-info">
+          <b>Tétanos / Difteria — Refuerzo</b>
+          <p>Recomendado: Antes de Sep 2026</p>
+        </div>
+        <span class="vac-badge warn">Pendiente</span>
+      </div>
+
+      <div class="vaccine-item pending">
+        <div class="vac-icon" style="opacity:.5">💉</div>
+        <div class="vac-info">
+          <b>Influenza estacional</b>
+          <p>Recomendado: Oct 2026 (anual)</p>
+        </div>
+        <span class="vac-badge neutral">Programada</span>
+      </div>
+
+    </div><!-- /screen-vacunas -->
+
+
+    <!-- ======================================================
+         PANTALLA: NOTIFICACIONES
+    ====================================================== -->
+    <div id="screen-notificaciones" class="app-screen">
+
+      <div class="notif-item unread" onclick="markRead(this)">
+        <div class="ni-icon cita">📅</div>
+        <div class="ni-body">
+          <b>Cita mañana — Dr. Morales</b>
+          <p>Tienes una cita el 16 Mayo a las 09:00 h en Consultorio 3, Torre Médica Norte.</p>
+          <small>Hace 2 horas</small>
+        </div>
+      </div>
+
+      <div class="notif-item unread" onclick="markRead(this)">
+        <div class="ni-icon med">💊</div>
+        <div class="ni-body">
+          <b>Medicamento pendiente</b>
+          <p>Recuerda tomar Metformina 850mg a las 14:00 h.</p>
+          <small>Hace 4 horas</small>
+        </div>
+      </div>
+
+      <div class="notif-item unread" onclick="markRead(this)">
+        <div class="ni-icon lab">🧪</div>
+        <div class="ni-body">
+          <b>Estudio próximo — 30 Mayo</b>
+          <p>BHC + QS + HbA1c en ayuno. Laboratorio IMSS a las 07:30 h. Recuerda no comer 8h antes.</p>
+          <small>Ayer</small>
+        </div>
+      </div>
+
+      <div class="notif-item" onclick="markRead(this)">
+        <div class="ni-icon vac">💉</div>
+        <div class="ni-body">
+          <b>Refuerzo de vacuna</b>
+          <p>Tu refuerzo de Tétanos / Difteria vence antes de Sep 2026. Agenda tu cita.</p>
+          <small>Hace 3 días</small>
+        </div>
+      </div>
+
+      <div class="notif-item" onclick="markRead(this)">
+        <div class="ni-icon token">🔑</div>
+        <div class="ni-body">
+          <b>Token de acceso expirado</b>
+          <p>El token compartido con Dr. Morales el 08 Mayo expiró automáticamente al finalizar la cita.</p>
+          <small>Hace 8 días</small>
+        </div>
+      </div>
+
+    </div><!-- /screen-notificaciones -->
+
+
+    <!-- ======================================================
+         PANTALLA: TOKEN DE ACCESO MÉDICO
+         Sistema de token temporal que comparte solo la info
+         médica necesaria con el doctor durante la cita.
+    ====================================================== -->
+    <div id="screen-token" class="app-screen">
+
+      <!-- Estado actual del token -->
+      <div class="token-status-card" id="token-status-card">
+        <div class="tsc-icon">🔑</div>
+        <div id="token-state-active" class="hidden">
+          <div class="token-code" id="token-display">MCH-2849-X7QR</div>
+          <p class="tsc-desc">Token <b>activo</b> — válido hasta el</p>
+          <div class="token-time" id="token-expires">16 Mayo 2026 · 11:00 h</div>
+          <div class="token-progress" id="token-progress">
+            <div class="tp-bar" id="tp-bar" style="width:72%"></div>
+          </div>
+          <p class="token-doctor">Asignado a: <b>Dr. Roberto Morales</b></p>
+          <button class="btn-danger-sm mt-1" onclick="revokeToken()">🚫 Revocar token ahora</button>
+        </div>
+        <div id="token-state-inactive">
+          <p class="tsc-desc">No hay ningún token activo</p>
+          <p class="tsc-sub">Tu información médica está <b>privada</b></p>
+        </div>
+      </div>
+
+      <!-- Generador de nuevo token -->
+      <div class="info-card mt-2">
+        <div class="ic-title">🆕 Generar nuevo token</div>
+
+        <div class="field-group">
+          <label>Doctor asignado</label>
+          <select class="app-select" id="tk-doctor">
+            <option>Dr. Roberto Morales Jiménez</option>
+            <option>Dra. Adriana Cruz Vega</option>
+            <option>Dr. Miguel Herrera Sánchez</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Fecha de la cita</label>
+          <input type="date" class="app-input" id="tk-date"/>
+        </div>
+
+        <div class="field-group">
+          <label>Hora de inicio</label>
+          <input type="time" class="app-input" id="tk-start"/>
+        </div>
+
+        <div class="field-group">
+          <label>Hora de fin estimada</label>
+          <input type="time" class="app-input" id="tk-end"/>
+        </div>
+
+        <!-- Qué información comparte el token -->
+        <div class="ic-title" style="margin-top:1rem;">Información a compartir</div>
+        <div class="token-perms">
+          <!-- NOTA: Estas opciones definen qué ve el doctor.
+               En producción, el backend filtra la información
+               según los permisos marcados aquí. -->
+          <label class="perm-row">
+            <input type="checkbox" checked/> Historial médico
+          </label>
+          <label class="perm-row">
+            <input type="checkbox" checked/> Estudios de laboratorio
+          </label>
+          <label class="perm-row">
+            <input type="checkbox" checked/> Vacunas
+          </label>
+          <label class="perm-row">
+            <input type="checkbox" checked/> Medicamentos actuales
+          </label>
+          <label class="perm-row">
+            <input type="checkbox"/> Contactos de emergencia
+          </label>
+        </div>
+
+        <button class="btn-full mt-2" onclick="generateToken()">🔑 Generar token</button>
+      </div>
+
+      <!-- Historial de tokens anteriores -->
+      <div class="info-card mt-2">
+        <div class="ic-title">📜 Tokens anteriores</div>
+        <div class="old-token-row">
+          <div>
+            <b>MCH-1142-K9PL</b>
+            <small>Dr. Morales · 08 May 2026 · Expirado</small>
+          </div>
+          <span class="vac-badge neutral">Expirado</span>
+        </div>
+        <div class="old-token-row">
+          <div>
+            <b>MCH-0837-Z3MW</b>
+            <small>Dra. Cruz · 01 May 2026 · Expirado</small>
+          </div>
+          <span class="vac-badge neutral">Expirado</span>
+        </div>
+      </div>
+
+    </div><!-- /screen-token -->
+
+
+  </div><!-- /app-content -->
+
+
+  <!-- ============================================================
+       BOTTOM NAVIGATION BAR
+       Navegación principal. 5 ítems = pantallas principales.
+       El ítem activo se resalta con var(--accent).
+  ============================================================ -->
+  <nav class="bottom-nav">
+    <button class="bn-item active" onclick="navigate('home')" id="bn-home">
+      <span class="bn-icon">🏠</span>
+      <span class="bn-label">Inicio</span>
+    </button>
+    <button class="bn-item" onclick="navigate('citas')" id="bn-citas">
+      <span class="bn-icon">📅</span>
+      <span class="bn-label">Citas</span>
+    </button>
+    <button class="bn-fab" onclick="openSheet('sheet-upload')" title="Subir documento">
+      <span>＋</span>
+    </button>
+    <button class="bn-item" onclick="navigate('medicamentos')" id="bn-medicamentos">
+      <span class="bn-icon">💊</span>
+      <span class="bn-label">Medicamentos</span>
+    </button>
+    <button class="bn-item" onclick="navigate('perfil')" id="bn-perfil">
+      <span class="bn-icon">👤</span>
+      <span class="bn-label">Perfil</span>
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+
+
+<!-- ============================================================
+     BOTTOM SHEETS (paneles deslizables desde abajo)
+     Cada sheet se activa con openSheet(id).
+     Reemplazan los modales del diseño web en móvil.
+============================================================ -->
+
+<!-- Overlay oscuro compartido por todos los sheets -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeAllSheets()"></div>
+
+<!-- Sheet: Subir documento -->
+<div class="bottom-sheet" id="sheet-upload">
+  <div class="bs-handle"></div>
+  <div class="bs-title">📄 Subir documento</div>
+  <div class="upload-options">
+    <div class="uo-item" onclick="alert('Cámara — próximamente')">
+      <span>📷</span><small>Tomar foto</small>
+    </div>
+    <div class="uo-item" onclick="alert('Galería — próximamente')">
+      <span>🖼️</span><small>Galería</small>
+    </div>
+    <div class="uo-item" onclick="alert('Archivos PDF — próximamente')">
+      <span>📂</span><small>Archivos</small>
+    </div>
+  </div>
+  <div class="field-group mt-1">
+    <label>Tipo de documento</label>
+    <select class="app-select">
+      <option>Análisis de laboratorio</option>
+      <option>Imagen / Radiografía</option>
+      <option>Receta médica</option>
+      <option>Estudio especial</option>
+    </select>
+  </div>
+  <div class="field-group">
+    <label>Descripción (opcional)</label>
+    <input type="text" class="app-input" placeholder="ej. BHC Mayo 2026"/>
+  </div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Documento subido (demo).')">Subir</button>
+</div>
+
+<!-- Sheet: Agendar cita -->
+<div class="bottom-sheet" id="sheet-new-appt">
+  <div class="bs-handle"></div>
+  <div class="bs-title">📅 Agendar cita</div>
+  <div class="field-group">
+    <label>Doctor</label>
+    <select class="app-select">
+      <option>Dr. Roberto Morales</option>
+      <option>Dra. Adriana Cruz Vega</option>
+      <option>Dr. Miguel Herrera Sánchez</option>
+    </select>
+  </div>
+  <div class="field-group"><label>Fecha</label><input type="date" class="app-input"/></div>
+  <div class="field-group"><label>Hora</label><input type="time" class="app-input"/></div>
+  <div class="field-group">
+    <label>Motivo</label>
+    <input type="text" class="app-input" placeholder="ej. Control HTA"/>
+  </div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Cita agendada (demo).')">Confirmar cita</button>
+</div>
+
+<!-- Sheet: Ver documento (simulado) -->
+<div class="bottom-sheet tall" id="sheet-doc-view">
+  <div class="bs-handle"></div>
+  <div class="bs-title">👁 Biometría hemática</div>
+  <div class="doc-preview-placeholder">
+    <span>📄</span>
+    <p>Vista previa del documento</p>
+    <small>En la versión final se mostrará el PDF / imagen aquí.</small>
+  </div>
+  <button class="btn-full" onclick="closeAllSheets()">Cerrar</button>
+</div>
+
+<!-- Sheet: Compartir documento -->
+<div class="bottom-sheet" id="sheet-share-doc">
+  <div class="bs-handle"></div>
+  <div class="bs-title">🔗 Compartir estudio</div>
+  <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
+    Comparte este documento directamente con tu doctor o genera un enlace temporal.
+  </p>
+  <button class="btn-full" onclick="closeAllSheets();alert('Enviado al Dr. Morales (demo).')">
+    📨 Enviar al Dr. Morales
+  </button>
+  <button class="btn-full outline mt-1" onclick="closeAllSheets();alert('Enlace copiado (demo).')">
+    🔗 Copiar enlace temporal
+  </button>
+</div>
+
+<!-- Sheet: Agregar medicamento -->
+<div class="bottom-sheet" id="sheet-add-med">
+  <div class="bs-handle"></div>
+  <div class="bs-title">💊 Agregar medicamento</div>
+  <div class="field-group"><label>Nombre</label><input type="text" class="app-input" placeholder="ej. Omeprazol"/></div>
+  <div class="field-group"><label>Dosis</label><input type="text" class="app-input" placeholder="ej. 20 mg"/></div>
+  <div class="field-group"><label>Frecuencia</label>
+    <select class="app-select">
+      <option>1 vez al día</option><option>Cada 12 horas</option>
+      <option>Cada 8 horas</option><option>Al dormir</option>
+    </select>
+  </div>
+  <div class="field-group"><label>Horario(s)</label><input type="time" class="app-input"/></div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Medicamento agregado (demo).')">Guardar</button>
+</div>
+
+<!-- Sheet: Agregar vacuna -->
+<div class="bottom-sheet" id="sheet-add-vaccine">
+  <div class="bs-handle"></div>
+  <div class="bs-title">💉 Registrar vacuna</div>
+  <div class="field-group"><label>Vacuna</label><input type="text" class="app-input" placeholder="ej. Influenza"/></div>
+  <div class="field-group"><label>Fecha de aplicación</label><input type="date" class="app-input"/></div>
+  <div class="field-group"><label>Lugar</label><input type="text" class="app-input" placeholder="ej. IMSS UMF 28"/></div>
+  <div class="field-group"><label>Próximo refuerzo (opcional)</label><input type="date" class="app-input"/></div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Vacuna registrada (demo).')">Guardar</button>
+</div>
+
+<!-- Sheet: Agregar doctor -->
+<div class="bottom-sheet" id="sheet-add-doctor">
+  <div class="bs-handle"></div>
+  <div class="bs-title">👨‍⚕️ Agregar doctor</div>
+  <div class="field-group"><label>Nombre completo</label><input type="text" class="app-input" placeholder="Dr. / Dra."/></div>
+  <div class="field-group"><label>Especialidad</label><input type="text" class="app-input" placeholder="ej. Cardiología"/></div>
+  <div class="field-group"><label>Hospital / Clínica</label><input type="text" class="app-input"/></div>
+  <div class="field-group"><label>Teléfono</label><input type="tel" class="app-input"/></div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Doctor agregado (demo).')">Guardar</button>
+</div>
+
+<!-- Sheet: Agregar estudio programado -->
+<div class="bottom-sheet" id="sheet-add-study">
+  <div class="bs-handle"></div>
+  <div class="bs-title">🧪 Programar estudio</div>
+  <div class="field-group"><label>Tipo de estudio</label><input type="text" class="app-input" placeholder="ej. BHC + QS"/></div>
+  <div class="field-group"><label>Fecha</label><input type="date" class="app-input"/></div>
+  <div class="field-group"><label>Hora</label><input type="time" class="app-input"/></div>
+  <div class="field-group"><label>Laboratorio</label><input type="text" class="app-input" placeholder="ej. Lab. IMSS"/></div>
+  <div class="field-group"><label>Indicaciones</label><input type="text" class="app-input" placeholder="ej. Ayuno 8 horas"/></div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Estudio programado (demo).')">Guardar</button>
+</div>
+
+<!-- Sheet: Editar perfil -->
+<div class="bottom-sheet" id="sheet-edit-profile">
+  <div class="bs-handle"></div>
+  <div class="bs-title">✏️ Editar perfil</div>
+  <div class="field-group"><label>Nombre completo</label><input type="text" class="app-input" value="María López García"/></div>
+  <div class="field-group"><label>Teléfono</label><input type="tel" class="app-input" value="55 4412-3322"/></div>
+  <div class="field-group"><label>Correo</label><input type="email" class="app-input" value="mlopez@correo.com"/></div>
+  <div class="field-group"><label>Institución</label>
+    <select class="app-select"><option>IMSS</option><option>ISSSTE</option><option>Particular</option></select>
+  </div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Perfil actualizado (demo).')">Guardar cambios</button>
+</div>
+
+<!-- Sheet: Agregar contacto de emergencia -->
+<div class="bottom-sheet" id="sheet-add-emergency">
+  <div class="bs-handle"></div>
+  <div class="bs-title">🚨 Contacto de emergencia</div>
+  <div class="field-group"><label>Nombre</label><input type="text" class="app-input" placeholder="Nombre completo"/></div>
+  <div class="field-group"><label>Relación</label><input type="text" class="app-input" placeholder="ej. Hijo, Esposo, Amigo"/></div>
+  <div class="field-group"><label>Teléfono</label><input type="tel" class="app-input" placeholder="+52 (55) 0000-0000"/></div>
+  <button class="btn-full" onclick="closeAllSheets();alert('Contacto agregado (demo).')">Guardar</button>
+</div>
+
+<!-- Script de lógica de la app -->
+<script src="script.js"></script>
+
+</body>
+</html>
