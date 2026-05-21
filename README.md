@@ -1,4 +1,7 @@
-    #Comandos para ejecutar desde escritorio (Todo desde la terminal )
+En el programa original debes agregar los archivos 
+> Main.js y Packege.json
+> Packege-lock.json se agrega solo al instalar el programa
+# Comandos para ejecutar desde escritorio (Todo desde la terminal )
     npm install --> Instala el programa
     npm start --> abre la ventana del programa
     npm run build:win --> abre la app para probarla... algo asi.. con los otros dos comandos es suficiente q.q
